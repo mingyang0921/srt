@@ -222,7 +222,7 @@ The total accumulated time in microseconds, during which the SRT sender has some
 
 #### pktSndDropTotal
 
-The total number of _dropped_ by the SRT sender DATA packets that have no chance to be delivered in time (refer to [TLPKTDROP](https://github.com/Haivision/srt-rfc/blob/master/draft-sharabayko-mops-srt.md#too-late-packet-drop-too-late-packet-drop) mechanism). Available for sender.
+The total number of _dropped_ by the SRT sender DATA packets that have no chance to be delivered in time (refer to [Too-Late Packet Drop](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01#section-4.6) mechanism). Available for sender.
 
 Packets may be dropped conditionally when both `SRTO_TSBPDMODE` and `SRTO_TLPKTDROP` socket options are enabled, refer to [SRT API Socket Options](API-socket-options.md).
 
@@ -232,9 +232,11 @@ where `SRTO_PEERLATENCY` is the configured SRT latency, `SRTO_SNDDROPDELAY` adds
 
 #### pktRcvDropTotal
 
-The total number of _dropped_ by the SRT receiver and, as a result, not delivered to the upstream application DATA packets (refer to [TLPKTDROP](https://github.com/Haivision/srt-rfc/blob/master/draft-sharabayko-mops-srt.md#too-late-packet-drop-too-late-packet-drop) mechanism). Available for receiver.
+The total number of _dropped_ by the SRT receiver and, as a result, not delivered to the upstream application DATA packets (refer to [Too-Late Packet Drop](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01#section-4.6) mechanism). Available for receiver.
 
 This statistic counts
+
+- not arrived packets including those signalled for dropping by the sender, that were dropped in favor of the subsequent existing packets,
 - arrived too late packets (retransmitted or original packets arrived out of order),
 - arrived in time packets, but decrypted with errors (see also [pktRcvUndecryptTotal](#pktRcvUndecryptTotal) statistic).
 
@@ -539,21 +541,10 @@ at that moment.
 
 #### msRTT
 
-Calculated Round trip time (RTT), in milliseconds. Sender and Receiver. \
-The value is calculated by the receiver based on the incoming ACKACK control packets
-(used by sender to acknowledge ACKs from receiver).
+Smoothed round-trip time (SRTT), an exponentially-weighted moving average (EWMA) of an endpoint's RTT samples, in milliseconds.
+Available both for sender and receiver.
 
-The RTT (Round-Trip time) is the sum of two STT (Single-Trip time) 
-values, one from agent to peer, and one from peer to agent. Note that **the 
-measurement method is different than in TCP**. SRT measures only the "reverse
-RTT", that is, the time measured at the receiver between sending a `UMSG_ACK`
-message until receiving the sender's `UMSG_ACKACK` response message (with the
-same journal). This happens to be a little different from the "forward RTT"
-measured in TCP, which is the time between sending a data packet of a particular 
-sequence number and receiving `UMSG_ACK` with a sequence number that is later 
-by 1. Forward RTT isn't being measured or reported in SRT, although some
-research works have shown that these values, even though they should be the same,
-happen to differ; "reverse RTT" seems to be more optimistic.
+See [Section 4.10. Round-Trip Time Estimation](https://tools.ietf.org/html/draft-sharabayko-srt-01#section-4.10) of the [Internet Draft](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01) and [[RFC6298] Paxson, V., Allman, M., Chu, J., and M. Sargent, "Computing TCP's Retransmission Timer"](https://datatracker.ietf.org/doc/html/rfc6298) for more details.
 
 #### mbpsBandwidth
 
@@ -725,14 +716,9 @@ that is received late.
 
 ## SRT Group Statistics
 
-SRT group statistics are implemented for SRT Connection Bonding feature and available since SRT v1.5.0. Check the following documentation and code examples for details:
+SRT group statistics are implemented for [SRT Connection Bonding](../features/bonding-quick-start.md) feature and available since SRT v1.5.0.
 
-- Introduction in [SRT Connection Bonding](../features/bonding-intro.md),
-- The concept of [SRT Socket Groups](../features/socket-groups.md). Here you will also find the information regarding the `srt-test-live` application for testing Connection Bonding,
-- Check also [SRT API](API.md) and [SRT API Functions](API-functions.md) documentation for Connection Bonding related updates,
-- Code examples: simple [client](https://github.com/Haivision/srt/blob/master/examples/test-c-client-bonding.c) and [server](https://github.com/Haivision/srt/blob/master/examples/test-c-server-bonding.c) implementation.
-
-`srt_bistats(SRTSOCKET u, ...)`  function can be used with a socket group ID as a first argument to get statistics for a group. Most values of the `SRT_TRACEBSTATS` will be filled with zeros except for the fields listed in [Summary Table](#group-summary-table) below. Refer to the documentation of the [SRT API Functions](API-functions.md) for usage instructions.
+The `srt_bistats(SRTSOCKET u, ...)` function can be used with a socket group ID as the first argument to get statistics for a group. `SRT_TRACEBSTATS` values will mostly be zeros, except for the fields listed in the [Summary Table](#group-summary-table) below. Refer to the [SRT API Functions](../API/API-functions.md#socket-group-management) documentation for usage instructions.
 
 ### Summary Table <a name="group-summary-table"></a>
 

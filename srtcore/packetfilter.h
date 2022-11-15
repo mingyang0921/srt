@@ -19,6 +19,8 @@
 #include "utilities.h"
 #include "packetfilter_api.h"
 
+namespace srt {
+
 class CUnitQueue;
 struct CUnit;
 class CUDT;
@@ -170,7 +172,7 @@ public:
     // Things being done:
     // 1. The filter is individual, so don't copy it. Set NULL.
     // 2. This will be configued anyway basing on possibly a new rule set.
-    PacketFilter(const PacketFilter& source SRT_ATR_UNUSED): m_filter(), m_sndctlpkt(0), m_unitq() {}
+    PacketFilter(const PacketFilter& source SRT_ATR_UNUSED): m_filter(), m_parent(), m_sndctlpkt(0), m_unitq() {}
 
     // This function will be called by the parent CUDT
     // in appropriate time. It should select appropriate
@@ -211,5 +213,7 @@ inline void PacketFilter::feedSource(CPacket& w_packet) { SRT_ASSERT(m_filter); 
 inline SRT_ARQLevel PacketFilter::arqLevel() { SRT_ASSERT(m_filter); return m_filter->arqLevel(); }
 
 bool ParseFilterConfig(std::string s, SrtFilterConfig& out, PacketFilter::Factory** ppf);
+
+} // namespace srt
 
 #endif

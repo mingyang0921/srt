@@ -38,6 +38,8 @@
 | <img width=290px height=1px/>                     | <img width=720px height=1px/>                                                                                  |
 
 <h3 id="socket-group-management">Socket Group Management</h3>
+
+Since SRT v1.5.0.
   
 | *Function / Structure*                            | *Description*                                                                                                  |
 |:------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
@@ -46,8 +48,6 @@
 | [SRT_SOCKGROUPDATA](#SRT_SOCKGROUPDATA)           | Most important structure for group member status                                                               |
 | [SRT_MEMBERSTATUS](#SRT_MEMBERSTATUS)             | Enumeration type that defines the state of a member connection in the group                                    |
 | [srt_create_group](#srt_create_group)             | Creates a new group of type `type`                                                                             |
-| [srt_include](#srt_include)                       | Adds a socket to a group                                                                                       |
-| [srt_exclude](#srt_exclude)                       | Removes a socket from a group to which it currently belongs                                                    |
 | [srt_groupof](#srt_groupof)                       | Returns the group ID of a socket, or `SRT_INVALID_SOCK`                                                        |
 | [srt_group_data](#srt_group_data)                 | Obtains the current member state of the group specified in `socketgroup`                                       |
 | [srt_connect_group](#srt_connect_group)           | Similar to calling [`srt_connect`](#srt_connect) or [`srt_connect_bind`](#srt_connect_bind) <br/> in a loop for every item in an array. |
@@ -135,6 +135,7 @@
 |:------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
 | [srt_time_now](#srt_time_now)                     | Get time in microseconds elapsed since epoch using SRT internal clock <br/> (steady or monotonic clock)              |
 | [srt_connection_time](#srt_connection_time)       | Get connection time in microseconds elapsed since epoch using SRT internal clock <br/> (steady or monotonic clock)   |
+| [srt_clock_type](#srt_clock_type)                 | Get the type of clock used internally by SRT                                                                   |
 | <img width=290px height=1px/>                     | <img width=720px height=1px/>                                                                                  |
 
 <h3 id="diagnostics">Diagnostics</h3>
@@ -152,25 +153,26 @@
 
 <h4 id="rejection-reasons">Rejection Reasons</h4>
 
-| *Rejection Reason*                                | *Description*                                                                                                  |
-|:------------------------------------------------- |:-------------------------------------------------------------------------------------------------------------- |
-| [SRT_REJ_UNKNOWN](#SRT_REJ_UNKNOWN)               | A fallback value for cases when there was no connection rejected                                               |
-| [SRT_REJ_SYSTEM](#SRT_REJ_SYSTEM)                 | A system function reported a failure                                                                           |
-| [SRT_REJ_PEER](#SRT_REJ_PEER)                     | The connection has been rejected by peer, but no further details are available                                 |
-| [SRT_REJ_RESOURCE](#SRT_REJ_RESOURCE)             | A problem with resource allocation (usually memory)                                                            |
-| [SRT_REJ_ROGUE](#SRT_REJ_ROGUE)                   | The data sent by one party to another cannot be properly interpreted                                           |
-| [SRT_REJ_BACKLOG](#SRT_REJ_BACKLOG)               | The listener's backlog has exceeded                                                                            |
-| [SRT_REJ_IPE](#SRT_REJ_IPE)                       | Internal Program Error                                                                                         |
-| [SRT_REJ_CLOSE](#SRT_REJ_CLOSE)                   | The listener socket received a request as it is being closed                                                   |
-| [SRT_REJ_VERSION](#SRT_REJ_VERSION)               | A party did not satisfy the minimum version requirement that had been set up for a connection                  |
-| [SRT_REJ_RDVCOOKIE](#SRT_REJ_RDVCOOKIE)           | Rendezvous cookie collision                                                                                    |
-| [SRT_REJ_BADSECRET](#SRT_REJ_BADSECRET)           | Both parties have defined a passprhase for connection and they differ                                          |
-| [SRT_REJ_UNSECURE](#SRT_REJ_UNSECURE)             | Only one connection party has set up a password                                                                |
-| [SRT_REJ_MESSAGEAPI](#SRT_REJ_MESSAGEAPI)         | The value for [`SRTO_MESSAGEAPI`](API-socket-options.md#SRTO_MESSAGEAPI) flag is different on both connection parties  |
-| [SRT_REJ_FILTER](#SRT_REJ_FILTER)                 | The [`SRTO_PACKETFILTER`](API-socket-options.md#SRTO_PACKETFILTER) option has been set differently on both connection parties  |
-| [SRT_REJ_GROUP](#SRT_REJ_GROUP)                   | The group type or some group settings are incompatible for both connection parties                             |
-| [SRT_REJ_TIMEOUT](#SRT_REJ_TIMEOUT)               | The connection wasn't rejected, but it timed out                                                               |
-| <img width=290px height=1px/>                     | <img width=720px height=1px/>                                                                                  |
+| *Rejection Reason*                           | *Since*   | *Description*                                                                                                  |
+|:-------------------------------------------- |:--------- |:-------------------------------------------------------------------------------------------------------------- |
+| [SRT_REJ_UNKNOWN](#SRT_REJ_UNKNOWN)          | 1.3.4     | A fallback value for cases when there was no connection rejected                                               |
+| [SRT_REJ_SYSTEM](#SRT_REJ_SYSTEM)            | 1.3.4     | A system function reported a failure                                                                           |
+| [SRT_REJ_PEER](#SRT_REJ_PEER)                | 1.3.4     | The connection has been rejected by peer, but no further details are available                                 |
+| [SRT_REJ_RESOURCE](#SRT_REJ_RESOURCE)        | 1.3.4     | A problem with resource allocation (usually memory)                                                            |
+| [SRT_REJ_ROGUE](#SRT_REJ_ROGUE)              | 1.3.4     | The data sent by one party to another cannot be properly interpreted                                           |
+| [SRT_REJ_BACKLOG](#SRT_REJ_BACKLOG)          | 1.3.4     | The listener's backlog has exceeded                                                                            |
+| [SRT_REJ_IPE](#SRT_REJ_IPE)                  | 1.3.4     | Internal Program Error                                                                                         |
+| [SRT_REJ_CLOSE](#SRT_REJ_CLOSE)              | 1.3.4     | The listener socket received a request as it is being closed                                                   |
+| [SRT_REJ_VERSION](#SRT_REJ_VERSION)          | 1.3.4     | A party did not satisfy the minimum version requirement that had been set up for a connection                  |
+| [SRT_REJ_RDVCOOKIE](#SRT_REJ_RDVCOOKIE)      | 1.3.4     | Rendezvous cookie collision                                                                                    |
+| [SRT_REJ_BADSECRET](#SRT_REJ_BADSECRET)      | 1.3.4     | Both parties have defined a passprhase for connection and they differ                                          |
+| [SRT_REJ_UNSECURE](#SRT_REJ_UNSECURE)        | 1.3.4     | Only one connection party has set up a password                                                                |
+| [SRT_REJ_MESSAGEAPI](#SRT_REJ_MESSAGEAPI)    | 1.3.4     | The value for [`SRTO_MESSAGEAPI`](API-socket-options.md#SRTO_MESSAGEAPI) flag is different on both connection parties  |
+| [SRT_REJ_FILTER](#SRT_REJ_FILTER)            | 1.3.4     | The [`SRTO_PACKETFILTER`](API-socket-options.md#SRTO_PACKETFILTER) option has been set differently on both connection parties  |
+| [SRT_REJ_GROUP](#SRT_REJ_GROUP)              | 1.4.2     | The group type or some group settings are incompatible for both connection parties                             |
+| [SRT_REJ_TIMEOUT](#SRT_REJ_TIMEOUT)          | 1.4.2     | The connection wasn't rejected, but it timed out                                                               |
+| [SRT_REJ_CRYPTO](#SRT_REJ_CRYPTO)            | 1.6.0-dev | The connection was rejected due to an unsupported or mismatching encryption mode                               |
+| <img width=290px height=1px/>                |           |                                                                                                                |
 
 <h4 id="error-codes">Error Codes</h4>
   
@@ -383,13 +385,14 @@ connecting, use [`srt_connect_bind`](#srt_connect_bind) for that purpose.
 | `SRT_ERROR`                   | (-1) on error, otherwise 0                                |
 | <img width=240px height=1px/> | <img width=710px height=1px/>                      |
 
-|       Errors                        |                                                                      |
-|:----------------------------------- |:-------------------------------------------------------------------- |
-| [`SRT_EINVSOCK`](#srt_einvsock)     | Socket passed as [`u`](#u) designates no valid socket                |
-| [`SRT_EINVOP`](#srt_einvop)         | Socket already bound                                                 |
-| [`SRT_ECONNSETUP`](#srt_econnsetup) | Internal creation of a UDP socket failed                             |
-| [`SRT_ESOCKFAIL`](#srt_esockfail)   | Internal configuration of a UDP socket (`bind`, `setsockopt`) failed |
-| <img width=240px height=1px/>       | <img width=710px height=1px/>                      |
+|       Errors                             |                                                                      |
+|:---------------------------------------- |:-------------------------------------------------------------------- |
+| [`SRT_EINVSOCK`](#srt_einvsock)          | Socket passed as [`u`](#u) designates no valid socket                |
+| [`SRT_EINVOP`](#srt_einvop)              | Socket already bound                                                 |
+| [`SRT_ECONNSETUP`](#srt_econnsetup)      | Internal creation of a UDP socket failed                             |
+| [`SRT_ESOCKFAIL`](#srt_esockfail)        | Internal configuration of a UDP socket (`bind`, `setsockopt`) failed |
+| [`SRT_EBINDCONFLICT`](#srt_ebindconflict)| Binding specification conflicts with existing one                    |
+| <img width=240px height=1px/>            | <img width=710px height=1px/>                                        |
 
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
@@ -404,6 +407,10 @@ int srt_bind_acquire(SRTSOCKET u, UDPSOCKET udpsock);
 
 A version of [`srt_bind`](#srt_bind) that acquires a given UDP socket instead of creating one.
 
+The UDP socket being acquired MUST NOT be a [connected socket](https://man7.org/linux/man-pages/man2/connect.2.html)
+(not associated with the socket name of a peer),
+because SRT needs to be able to set the destination address by itself.  
+See [#2178](https://github.com/Haivision/srt/issues/2178) for more information.
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
 
@@ -644,7 +651,7 @@ calling this function.
 | [`SRT_EINVPARAM`](#srt_einvparam) | NULL specified as `listeners` or `nlisteners` < 1            |
 | [`SRT_EINVSOCK`](#srt_einvsock)   | Any socket in `listeners` designates no valid socket ID. Can also mean *Internal Error* when <br/> an error occurred while creating an accepted socket (:warning: &nbsp; **BUG?**) |
 | [`SRT_ENOLISTEN`](#srt_enolisten) | Any socket in `listeners` is not set up as a listener ([`srt_listen`](#srt_listen) not called, or the listener socket <br/> has already been closed)  |
-| [`SRT_EASYNCRCV`](#srt_easyncrcv) | No connection reported on any listener socket as the timeout has been reached. This error is only <br/> reported when `msTimeOut` is not -1  |
+| [`SRT_ETIMEOUT`](#srt_etimeout)   | No connection reported on any listener socket as the timeout has been reached. This error is only <br/> reported when `msTimeOut` is not -1  |
 | <img width=240px height=1px/>     | <img width=710px height=1px/>                      |
 
 
@@ -840,18 +847,19 @@ first on the automatically created socket for the connection.
 |    `SRT_ERROR`                | (-1) in case of error                                    |
 |         0                     | In case when used for [`u`](#u) socket                   |
 |    Socket ID                  | Created for connection for [`u`](#u) group               |
-| <img width=240px height=1px/> | <img width=710px height=1px/>                      |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                            |
 
-|       Errors                          |                                                          |
-|:------------------------------------- |:-------------------------------------------------------- |
-| [`SRT_EINVSOCK`](#srt_einvsock)       | Socket passed as [`u`](#u) designates no valid socket    |
-| [`SRT_EINVOP`](#srt_einvop)           | Socket already bound                                     |
-| [`SRT_ECONNSETUP`](#srt_econnsetup)   | Internal creation of a UDP socket failed                 |
-| [`SRT_ESOCKFAIL`](#srt_esockfail)     | Internal configuration of a UDP socket (`bind`, `setsockopt`) failed   |
-| [`SRT_ERDVUNBOUND`](#srt_erdvunbound) | Internal error ([`srt_connect`](#srt_connect) should not report it after [`srt_bind`](#srt_bind) was called)   |
-| [`SRT_ECONNSOCK`](#srt_econnsock)     | Socket [`u`](#u) is already connected                    |
-| [`SRT_ECONNREJ`](#srt_econnrej)       | Connection has been rejected                             |
-| <img width=240px height=1px/>         | <img width=710px height=1px/>                      |
+|       Errors                             |                                                          |
+|:---------------------------------------- |:-------------------------------------------------------- |
+| [`SRT_EINVSOCK`](#srt_einvsock)          | Socket passed as [`u`](#u) designates no valid socket    |
+| [`SRT_EINVOP`](#srt_einvop)              | Socket already bound                                     |
+| [`SRT_ECONNSETUP`](#srt_econnsetup)      | Internal creation of a UDP socket failed                 |
+| [`SRT_ESOCKFAIL`](#srt_esockfail)        | Internal configuration of a UDP socket (`bind`, `setsockopt`) failed   |
+| [`SRT_ERDVUNBOUND`](#srt_erdvunbound)    | Internal error ([`srt_connect`](#srt_connect) should not report it after [`srt_bind`](#srt_bind) was called)   |
+| [`SRT_ECONNSOCK`](#srt_econnsock)        | Socket [`u`](#u) is already connected                    |
+| [`SRT_ECONNREJ`](#srt_econnrej)          | Connection has been rejected                             |
+| [`SRT_EBINDCONFLICT`](#srt_ebindconflict)| Binding specification conflicts with existing one        |
+| <img width=240px height=1px/>            | <img width=710px height=1px/>                            |
 
 
 **IMPORTANT**: It's not allowed to bind and connect the same socket to two
@@ -994,10 +1002,8 @@ typedef void srt_connect_callback_fn(void* opaq, SRTSOCKET ns, int errorcode, co
 
 The following group types are collected in an [`SRT_GROUP_TYPE`](#SRT_GROUP_TYPE) enum:
 
-* `SRT_GTYPE_BROADCAST`: broadcast type, all links are actively used at once
-* `SRT_GTYPE_BACKUP`: backup type, idle links take over connection on disturbance
-* `SRT_GTYPE_BALANCING`: balancing type, share bandwidth usage between links
-
+* `SRT_GTYPE_BROADCAST`: broadcast type, all links are actively used at once;
+* `SRT_GTYPE_BACKUP`: backup type, idle links take over connection on disturbance.
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
 
@@ -1014,7 +1020,7 @@ typedef struct SRT_GroupMemberConfig_
     SRTSOCKET id;
     struct sockaddr_storage srcaddr;
     struct sockaddr_storage peeraddr;
-    int weight;
+    uint16_t weight;
     SRT_SOCKOPT_CONFIG* config;
     int errorcode;
     int token;
@@ -1037,7 +1043,6 @@ you can change the value of `weight` and `config` and `token` fields. The
 
 * BROADCAST: not used
 * BACKUP: positive value of link priority (the greater, the more preferred)
-* BALANCING: relative expected load on this link for fixed algorithm
 
 In any case, the allowed value for `weight` is between 0 and 32767.
 
@@ -1101,7 +1106,7 @@ without turning into `SRT_GST_IDLE`
 * `SRT_GST_IDLE`: The connection is established and ready to
 take over transmission, but it's not used for transmission at
 the moment. This state may last for a short moment in the case of
-broadcast or balancing groups. In backup groups this state
+broadcast group. In backup group this state
 defines a backup link that is ready to take over when the
 currently active (running) link becomes unstable.
 
@@ -1135,8 +1140,6 @@ become `SRT_GST_IDLE`).
 ### Functions to Be Used on Groups
 
   * [srt_create_group](#srt_create_group)
-  * [srt_include](#srt_include)
-  * [srt_exclude](#srt_exclude)
   * [srt_groupof](#srt_groupof)
   * [srt_group_data](#srt_group_data)
   * [srt_connect_group](#srt_connect_group)
@@ -1151,38 +1154,17 @@ become `SRT_GST_IDLE`).
 SRTSOCKET srt_create_group(SRT_GROUP_TYPE type);
 ```
 
-Creates a new group of type `type`. This is typically called on the
-caller side to be next used for connecting to the listener peer side.
+Creates a new group of type `type`. Is typically called on the
+caller side to be next used for connecting to a remote SRT listener.
 The group ID is of the same domain as the socket ID, with the exception that
 the `SRTGROUP_MASK` bit is set on it, unlike for socket ID.
 
+|      Returns                  |                                                           |
+|:----------------------------- |:--------------------------------------------------------- |
+| `SRTSOCKET`                   | Group SRT socket ID.                                      |
+| `SRT_INVALID_SOCK`            | On error or if bonding API is disabled.                   |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                             |
 
-[:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
-
----  
-  
-#### srt_include
-
-```
-int srt_include(SRTSOCKET socket, SRTSOCKET group);
-```
-
-This function adds a socket to a group. This is only allowed for unmanaged
-groups. No such group type is currently implemented.
-
-
-[:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
-
----  
-  
-#### srt_exclude
-
-```
-int srt_exclude(SRTSOCKET socket);
-```
-This function removes a socket from a group to which it currently belongs.
-This is only allowed for unmanaged groups. No such group type is currently
-implemented.
 
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
@@ -1192,11 +1174,17 @@ implemented.
 #### srt_groupof
 
 ```
-SRTSOCKET srt_groupof(SRTSOCKET socket);
+SRTSOCKET srt_groupof(SRTSOCKET member);
 ```
 
-Returns the group ID of the socket, or `SRT_INVALID_SOCK` if the socket
-doesn't exist or it's not a member of any group.
+Retrieves the group SRT socket ID that corresponds to the member socket ID `member`.
+
+
+|      Returns                  |                                                           |
+|:----------------------------- |:--------------------------------------------------------- |
+| `SRTSOCKET`                   | Corresponding group SRT socket ID of the member socket.   |
+| `SRT_INVALID_SOCK`            | The socket doesn't exist, it is not a member of any grou, or bonding API is disabled. |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                             |
 
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
@@ -1229,16 +1217,16 @@ the number of elements filled. Otherwise the array will not be filled and
 This function can be used to get the group size by setting `output` to `NULL`,
 and providing `socketgroup` and `inoutlen`.
 
-|      Returns                  |                                                           |
-|:----------------------------- |:--------------------------------------------------------- |
-|   # of elements               | The number of data elements filled, on success            |
-|         -1                    | Error                                                     |
+|      Returns                  |                                                    |
+|:----------------------------- |:-------------------------------------------------- |
+|   # of elements               | The number of data elements filled, on success     |
+|         -1                    | Error                                              |
 | <img width=240px height=1px/> | <img width=710px height=1px/>                      |
 
 
 |      Errors                        |                                                           |
 |:---------------------------------- |:--------------------------------------------------------- |
-| [`SRT_EINVPARAM`](#srt_einvparam)  | Reported if `socketgroup` is not an existing group ID     |
+| [`SRT_EINVPARAM`](#srt_einvparam)  | Reported if `socketgroup` is not an existing group ID. Or if bonding API is disabled. |
 | [`SRT_ELARGEMSG`](#srt_elargemsg)  | Reported if `inoutlen` if less than the size of the group |
 | <img width=240px height=1px/>      | <img width=710px height=1px/>                      |
 
@@ -1266,19 +1254,18 @@ int srt_connect_group(SRTSOCKET group,
 This function does almost the same as calling [`srt_connect`](#srt_connect) or 
 [`srt_connect_bind`](#srt_connect_bind) (when the source was specified for 
 [`srt_prepare_endpoint`](#srt_prepare_endpoint)) in a loop for every item specified 
-in `name` array. However if you did this in blocking mode, the first call to 
+in the `name` array. However if blocking mode is being used, the first call to 
 [`srt_connect`](#srt_connect) would block until the connection is established, 
 whereas this function blocks until any of the specified connections is established.
 
-If you set the group nonblocking mode ([`SRTO_RCVSYN`](API-socket-options.md#SRTO_RCVSYN) 
+If the group nonblocking mode is set ([`SRTO_RCVSYN`](API-socket-options.md#SRTO_RCVSYN) 
 option), there's no difference, except that the [`SRT_SOCKGROUPCONFIG`](#SRT_SOCKGROUPCONFIG) 
-structure allows you to add extra configuration data used by groups. Note also that 
+structure allows adding extra configuration data used by groups. Note also that 
 this function accepts only groups, not sockets.
 
 The elements of the `name` array need to be prepared with the use of the
 [`srt_prepare_endpoint`](#srt_prepare_endpoint) function. Note that it is
-**NOT** required that every target address you specify for it is of the same
-family.
+**NOT** required that every target address specified is of the same family.
 
 Return value and errors in this function are the same as in [`srt_connect`](#srt_connect),
 although this function reports success when at least one connection has
@@ -1307,6 +1294,19 @@ The fields of [`SRT_SOCKGROUPCONFIG`](#SRT_SOCKGROUPCONFIG) structure have the f
 * `config`: unchanged (the object should be manually deleted upon return)
 * [`errorcode`](#error-codes): status of connection for that link ([`SRT_SUCCESS`](#srt_success) if succeeded)
 * `token`: same as in input, or a newly created token value if input was -1
+
+|      Returns                  |                                                    |
+|:----------------------------- |:-------------------------------------------------- |
+|   `SRT_SOCKET`                | The socket ID of the first connected member.       |
+|         -1                    | Error                                              |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                      |
+
+
+|      Errors                        |                                                           |
+|:---------------------------------- |:--------------------------------------------------------- |
+| [`SRT_EINVPARAM`](#srt_einvparam)  | Reported if `socketgroup` is not an existing group ID. Or if bonding API is disabled. |
+| [`SRT_ECONNLOST`](#srt_econnlost)  | Reported if none of member sockets has connected. |
+| <img width=240px height=1px/>      | <img width=710px height=1px/>                      |
 
 The procedure of connecting for every connection definition specified
 in the `name` array is performed the following way:
@@ -1369,7 +1369,7 @@ in which case the `token` value will be preserved.
 
 ```
 SRT_SOCKGROUPCONFIG srt_prepare_endpoint(const struct sockaddr* src /*nullable*/,
-                                       const struct sockaddr* adr, int namelen);
+                                       const struct sockaddr* dst, int namelen);
 ```
 
 This function prepares a default [`SRT_SOCKGROUPCONFIG`](#SRT_SOCKGROUPCONFIG) object as an element
@@ -1379,34 +1379,37 @@ additional data:
 **Arguments**:
 
 * `src`: address to which the newly created socket should be bound
-* `adr`: address to which the newly created socket should connect
-* `namelen`: size of both `src` and `adr`
+* `dst`: address to which the newly created socket should connect
+* `namelen`: size of both `src` and `dst`
 
 The following fields are set by this function:
 
 * `id`: -1 (unused for input)
 * `srcaddr`: default empty (see below) or copied from `src`
-* `peeraddr`: copied from `adr`
+* `peeraddr`: copied from `dst`
 * `weight`: 0
 * `config`: `NULL`
 * [`errorcode`](#error-codes): [`SRT_SUCCESS`](#srt_success)
 
 The default empty `srcaddr` is set the following way:
 
-* `ss_family` set to the same value as `adr->sa_family`
+* `ss_family` set to the same value as `dst->sa_family`
 * empty address (`INADDR_ANY` for IPv4 and `in6addr_any` for IPv6)
 * port number 0
 
 If `src` is not NULL, then `srcaddr` is copied from `src`. Otherwise
 it will remain as default empty.
 
-The `adr` parameter is obligatory. If `src` parameter is not NULL,
-then both `adr` and `src` must have the same value of `sa_family`.
+The `dst` parameter is obligatory. If `src` parameter is not NULL,
+then both `dst` and `src` must have the same value of `sa_family`.
 
 Note though that this function has no possibility of reporting errors - these
 would be reported only by [`srt_connect_group`](#srt_connect_group), separately 
 for every individual connection, and the status can be obtained from
 the [`errorcode`](#error-codes) field.
+
+Note that the `errorcode` field of the `SRT_SOCKGROUPCONFIG` returned would be set to `SRT_EINVOP`
+if the bonding API is disabled (`ENABLE_BONDING=OFF`).
 
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
@@ -1428,6 +1431,7 @@ should delete it using [`srt_delete_config`](#srt_delete_config).
 |      Returns                  |                                                                    |
 |:----------------------------- |:------------------------------------------------------------------ |
 |      Pointer                  | The pointer to the created object (memory allocation errors apply) |
+|      NULL                     | If bonding API is disabled.                                        |
 | <img width=240px height=1px/> | <img width=710px height=1px/>                      |
 
 
@@ -1488,7 +1492,7 @@ The following options are allowed to be set on the member socket:
 
 |       Errors                       |                                                                       |
 |:---------------------------------- |:--------------------------------------------------------------------- |
-| [`SRT_EINVPARAM`](#srt_einvparam)  | This option is not allowed to be set on a socket being a group member |
+| [`SRT_EINVPARAM`](#srt_einvparam)  | This option is not allowed to be set on a socket being a group member. Or if bonding API is disabled. |
 | <img width=240px height=1px/>      | <img width=710px height=1px/>                      |
 
 
@@ -1554,6 +1558,18 @@ port number after it has been autoselected.
 | [`SRT_ENOCONN`](#srt_enoconn)   | Socket [`u`](#u) isn't bound, so there's no local address to return <br/>(:warning: &nbsp; **BUG?** It should rather be [`SRT_EUNBOUNDSOCK`](#srt_eunboundsock))        |
 | <img width=240px height=1px/>   | <img width=710px height=1px/>                      |
 
+Example
+
+```c++
+sockaddr_storage name;
+int namelen = sizeof sockaddr_storage;
+int res = srt_getsockname(m_listener_sock, (sockaddr*) &name, &namelen);
+// IPv4: namelen == sockaddr_in.
+// IPv6: namelen == sockaddr_in6.
+if (res < 0) {
+    std::cerr << "Error " << srt_getlasterror_str() << '\n';
+}
+```
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
 
@@ -1666,10 +1682,10 @@ readable form, where x = ("%d", (version>>16) & 0xff), etc.
 
 * [SRT_MSGCTRL](#SRT_MSGCTRL)
 
-**NOTE:** There might be a difference in terminology used in [SRT RFC](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-00) and current documentation.
-Please consult [Data Transmission Modes](https://tools.ietf.org/html/draft-sharabayko-srt-00#section-4.2)
-and [Best Practices and Configuration Tips for Data Transmission via SRT](https://tools.ietf.org/html/draft-sharabayko-srt-00#page-71)
-sections of the RFC additionally. The current section is going to be reworked accordingly.
+**NOTE:** There might be a difference in terminology used in [Internet Draft](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01) and current documentation.
+Please consult [Data Transmission Modes](https://tools.ietf.org/html/draft-sharabayko-srt-01#section-4.2)
+and [Best Practices and Configuration Tips for Data Transmission via SRT](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01#section-7)
+sections of the Internet Draft additionally. The current section is going to be reworked accordingly.
 
 ### SRT_MSGCTRL
 
@@ -1700,11 +1716,8 @@ called function should work.
 - `msgttl`: [IN]. In **message** and **live mode** only, specifies the TTL for 
 sending messages (in `[ms]`). Not used for receiving messages. If this value
 is not negative, it defines the maximum time up to which this message should
-stay scheduled for sending for the sake of later retransmission. A message
-is always sent for the first time, but the UDP packet carrying it may be
-(also partially) lost, and if so, lacking packets will be retransmitted. If
-the message is not successfully resent before TTL expires, further retransmission
-is given up and the message is discarded.
+stay scheduled for sending. If TTL has expired, the message sending and further retransmissions are discarded, even
+if it has never been sent so far.
 
 - `inorder`: [IN]. In **message mode** only, specifies that sent messages should 
 be extracted by the receiver in the order of sending. This can be meaningful if 
@@ -1722,7 +1735,7 @@ delivered to the receiving application (in microseconds since SRT clock epoch).
   - [IN] Sender only. Specifies the application-provided timestamp to be associated
 with the packet. If not provided (specified as 0), the current time of 
 SRT internal clock is used.
-  - For details on how to use `srctime` please refer to the (Time Access)[#time-access] section.
+  - For details on how to use `srctime` please refer to the [Time Access](#time-access) section.
 
 - `pktseq`: Receiver only. Reports the sequence number for the packet carrying
 out the payload being returned. If the payload is carried out by more than one
@@ -1739,8 +1752,8 @@ call [`srt_sendmsg2`](#srt_sendmsg) or [`srt_recvmsg2`](#srt_recvmsg2) function
 for a group, you should pass an array here so that you can retrieve the status of 
 particular member sockets. If you pass an array that is too small, your `grpdata_size` 
 field will be rewritten with the current number of members, but without filling in 
-the array. For details, see the [SRT Connection Bonding](../features/bonding-intro.md) and 
-[SRT Socket Groups](../features/socket-groups.md) documents.
+the array. For details, see the [SRT Connection Bonding: Quick Start](../features/bonding-intro.md) and 
+[SRT Connection Bonding: Socket Groups](../features/socket-groups.md) documents.
 
 **Helpers for [`SRT_MSGCTRL`](#SRT_MSGCTRL):**
 
@@ -1769,10 +1782,10 @@ to be mutable, as they use some fields to output values.
 * [srt_recv, srt_recvmsg, srt_recvmsg2](#srt_recv-srt_recvmsg-srt_recvmsg2)
 * [srt_sendfile, srt_recvfile](#srt_sendfile-srt_recvfile)
 
-**NOTE:** There might be a difference in terminology used in [SRT RFC](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-00) and current documentation.
-Please consult [Data Transmission Modes](https://tools.ietf.org/html/draft-sharabayko-srt-00#section-4.2)
-and [Best Practices and Configuration Tips for Data Transmission via SRT](https://tools.ietf.org/html/draft-sharabayko-srt-00#page-71)
-sections of the RFC additionally. The current section is going to be reworked accordingly.
+**NOTE:** There might be a difference in terminology used in [Internet Draft](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01) and current documentation.
+Please consult [Data Transmission Modes](https://tools.ietf.org/html/draft-sharabayko-srt-01#section-4.2)
+and [Best Practices and Configuration Tips for Data Transmission via SRT](https://datatracker.ietf.org/doc/html/draft-sharabayko-srt-01#section-7)
+sections of the Internet Draft additionally. The current section is going to be reworked accordingly.
 
 
 ### srt_send
@@ -1882,8 +1895,13 @@ to be returned does not fit in the buffer, nothing will be received and
 the error is reported.
 
 3. In **live mode**, the function behaves as in **file/message mode**, although the 
-number of bytes retrieved will be at most the size of `SRTO_PAYLOADSIZE`. In this mode, 
-however, with default settings of [`SRTO_TSBPDMODE`](API-socket-options.md#SRTO_TSBPDMODE) 
+number of bytes retrieved will be at most the maximum payload of one MTU.
+The [`SRTO_PAYLOADSIZE`](API-socket-options.md#SRTO_PAYLOADSIZE) value configured by the sender
+is not negotiated, and not known to the receiver.
+The [`SRTO_PAYLOADSIZE`](API-socket-options.md#SRTO_PAYLOADSIZE) value set on the SRT receiver
+is mainly used for heuristics. However, the receiver is prepared to receive
+the whole MTU as configured with [`SRTO_MSS`](API-socket-options.md#SRTO_MSS).
+In this mode, however, with default settings of [`SRTO_TSBPDMODE`](API-socket-options.md#SRTO_TSBPDMODE) 
 and [`SRTO_TLPKTDROP`](API-socket-options.md#SRTO_TLPKTDROP), the message will be 
 received only when its time to play has come, and until then it will be kept in the 
 receiver buffer. Also, when the time to play has come for a message that is next to 
@@ -2009,6 +2027,19 @@ Reports the current statistics
 `SRT_TRACEBSTATS` is an alias to `struct CBytePerfMon`. For a complete description
 of the fields please refer to [SRT Statistics](statistics.md).
 
+
+|      Returns                  |                                                           |
+|:----------------------------- |:--------------------------------------------------------- |
+|         0                     | Success                                                   |
+|        -1                     | Failure                                                   |
+| <img width=240px height=1px/> | <img width=710px height=1px/>                      |
+
+|       Errors                        |                                                                   |
+|:----------------------------------- |:----------------------------------------------------------------- |
+| [`SRT_EINVSOCK`](#srt_einvsock)     | Invalid socket ID provided.
+| [`SRT_ECONNLOST`](#srt_econnlost)   | Connection lost (group socket).
+| [`SRT_ENOCONN`](#srt_enoconn)       | Not connected (group socket).
+| <img width=240px height=1px/>       | <img width=710px height=1px/>                      |
 
 [:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
 
@@ -2159,7 +2190,7 @@ as level-triggered, you can do two separate subscriptions for the same socket.
 
 **IMPORTANT**: The [`srt_epoll_wait`](#srt_epoll_wait) function does not report
 [`SRT_EPOLL_UPDATE`](#SRT_EPOLL_UPDATE) events. If you need the ability to get 
-any possible flag, you must use [`srt_epoll_wait`](#srt_epoll_wait). Note that 
+any possible flag, you must use [`srt_epoll_uwait`](#srt_epoll_uwait). Note that 
 this function doesn't work with system file descriptors.
 
 |      Returns                  |                                                           |
@@ -2646,7 +2677,36 @@ and `msTimeStamp` value of the `SRT_TRACEBSTATS` (see [SRT Statistics](statistic
 
 ---
   
+### srt_clock_type
 
+```c
+int srt_clock_type(void);
+```
+
+Get the type of clock used internally by SRT to be used only for informtational peurpose.
+Using any time source except for [`srt_time_now()`](#srt_time_now) and [`srt_connection_time(SRTSOCKET)`](#srt_connection_time)
+to timestamp packets submitted to SRT is not recommended and must be done with awareness and at your own risk.
+
+| Returns | Clock Type                          | Description                                |
+| :------ | :---------------------------------- | :------------------------------------------|
+| 0       | `SRT_SYNC_CLOCK_STDCXX_STEADY`      | C++11 `std::chrono::steady_clock`          |
+| 1       | `SRT_SYNC_CLOCK_GETTIME_MONOTONIC`  | `clock_gettime` with `CLOCK_MONOTONIC`     |
+| 2       | `SRT_SYNC_CLOCK_WINQPC`             | Windows `QueryPerformanceCounter(..)`      |
+| 3       | `SRT_SYNC_CLOCK_MACH_ABSTIME`       | `mach_absolute_time()`                     |
+| 4       | `SRT_SYNC_CLOCK_POSIX_GETTIMEOFDAY` | POSIX `gettimeofday(..)`                   |
+| 5       | `SRT_SYNC_CLOCK_AMD64_RDTSC`        | `asm("rdtsc" ..)`                          |
+| 6       | `SRT_SYNC_CLOCK_IA32_RDTSC`         | `asm volatile("rdtsc" ..)`                 |
+| 7       | `SRT_SYNC_CLOCK_IA64_ITC`           | `asm("mov %0=ar.itc" ..)`                  |
+
+|       Errors                      |                                                            |
+|:--------------------------------- |:---------------------------------------------------------- |
+| None                              |                                                            |
+| <img width=240px height=1px/>     | <img width=710px height=1px/>                      |
+
+  
+[:arrow_up: &nbsp; Back to List of Functions & Structures](#srt-api-functions)
+
+---
 
 
 ## Diagnostics
@@ -3195,6 +3255,54 @@ by setting the `SRT_EPOLL_ENABLE_EMPTY` flag, which may be useful when
 you use multiple threads and start waiting without subscribed sockets, so that
 you can subscribe them later from another thread.
 
+
+#### `SRT_EBINDCONFLICT`
+
+The binding you are attempting to set up a socket with cannot be completed because
+it conflicts with another existing binding. This is because an intersecting binding
+was found that cannot be reused according to the specification in `srt_bind` call.
+
+A binding is considered intersecting if the existing binding has the same port
+and covers at least partially the range as that of the attempted binding. These
+ranges can be split in three groups:
+
+1. An explicitly specified IP address (both IPv4 and IPv6) covers this address only.
+2. An IPv4 wildcard 0.0.0.0 covers all IPv4 addresses (but not IPv6).
+3. An IPv6 wildcard :: covers:
+   * if `SRTO_IPV6ONLY` is true - all IPv6 addresses (but not IPv4)
+   * if `SRTO_IPV6ONLY` is false - all IP addresses.
+
+Example 1:
+
+* Socket 1: bind to IPv4 0.0.0.0
+* Socket 2: bind to IPv6 :: with `SRTO_IPV6ONLY` = true
+* Result: NOT intersecting
+
+Example 2:
+
+* Socket 1: bind to IPv4 1.2.3.4
+* Socket 2: bind to IPv4 0.0.0.0
+* Result: intersecting (and conflicting)
+
+Example 3:
+
+* Socket 1: bind to IPv4 1.2.3.4
+* Socket 2: bind to IPv6 :: with `SRTO_IPV6ONLY` = false
+* Result: intersecting (and conflicting)
+
+If any common range coverage is found between the attempted binding specification
+(in `srt_bind` call) and the found existing binding with the same port number,
+then all of the following conditions must be satisfied between them:
+
+1. The `SRTO_REUSEADDR` must be true (default) in both.
+
+2. The IP address specification (in case of IPv6, also including the value of
+`SRTO_IPV6ONLY` flag) must be exactly identical.
+
+3. The UDP-specific settings must be identical.
+
+If any of these conditions isn't satisfied, the `srt_bind` function results
+in conflict and report this error.
   
 #### SRT_EASYNCFAIL
 

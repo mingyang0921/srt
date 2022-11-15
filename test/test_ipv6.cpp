@@ -4,6 +4,8 @@
 #include "srt.h"
 #include "netinet_any.h"
 
+using srt::sockaddr_any;
+
 class TestIPv6
     : public ::testing::Test
 {
@@ -29,6 +31,8 @@ protected:
 
         m_caller_sock = srt_create_socket();
         ASSERT_NE(m_caller_sock, SRT_ERROR);
+        // IPv6 calling IPv4 would otherwise fail if the system-default net.ipv6.bindv6only=1.
+        ASSERT_NE(srt_setsockflag(m_caller_sock, SRTO_IPV6ONLY, &no, sizeof no), SRT_ERROR);
 
         m_listener_sock = srt_create_socket();
         ASSERT_NE(m_listener_sock, SRT_ERROR);
@@ -48,11 +52,14 @@ public:
     {
         sockaddr_any sa (family);
         sa.hport(m_listen_port);
-        ASSERT_EQ(inet_pton(family, address.c_str(), sa.get_addr()), 1);
+        EXPECT_EQ(inet_pton(family, address.c_str(), sa.get_addr()), 1);
 
         std::cout << "Calling: " << address << "(" << fam[family] << ")\n";
 
-        ASSERT_NE(srt_connect(m_caller_sock, (sockaddr*)&sa, sizeof sa), SRT_ERROR);
+        const int connect_res = srt_connect(m_caller_sock, (sockaddr*)&sa, sizeof sa);
+        EXPECT_NE(connect_res, SRT_ERROR) << "srt_connect() failed with: " << srt_getlasterror_str();
+        if (connect_res == SRT_ERROR)
+            srt_close(m_listener_sock);
 
         PrintAddresses(m_caller_sock, "CALLER");
     }
@@ -61,7 +68,7 @@ public:
 
     void ShowAddress(std::string src, const sockaddr_any& w)
     {
-        ASSERT_NE(fam.count(w.family()), 0) << "INVALID FAMILY";
+        EXPECT_NE(fam.count(w.family()), 0U) << "INVALID FAMILY";
         std::cout << src << ": " << w.str() << " (" << fam[w.family()] << ")" << std::endl;
     }
 
@@ -70,16 +77,23 @@ public:
         sockaddr_any sc1;
 
         SRTSOCKET accepted_sock = srt_accept(m_listener_sock, sc1.get(), &sc1.len);
-        EXPECT_NE(accepted_sock, SRT_INVALID_SOCK);
+        EXPECT_NE(accepted_sock, SRT_INVALID_SOCK) << "accept() failed with: " << srt_getlasterror_str();
+        if (accepted_sock == SRT_INVALID_SOCK) {
+            return sockaddr_any();
+        }
 
         PrintAddresses(accepted_sock, "ACCEPTED");
 
         sockaddr_any sn;
         EXPECT_NE(srt_getsockname(accepted_sock, sn.get(), &sn.len), SRT_ERROR);
+        EXPECT_NE(sn.get_addr(), nullptr);
 
-        int32_t ipv6_zero [] = {0, 0, 0, 0};
-        EXPECT_NE(memcmp(ipv6_zero, sn.get_addr(), sizeof ipv6_zero), 0)
-            << "EMPTY address in srt_getsockname";
+        if (sn.get_addr() != nullptr)
+        {
+            const int32_t ipv6_zero[] = { 0, 0, 0, 0 };
+            EXPECT_NE(memcmp(ipv6_zero, sn.get_addr(), sizeof ipv6_zero), 0)
+                << "EMPTY address in srt_getsockname";
+        }
 
         srt_close(accepted_sock);
         return sn;
